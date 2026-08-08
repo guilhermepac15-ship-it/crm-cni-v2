@@ -1,0 +1,9 @@
+{
+  "name": "crm-cni-seed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Script para criar os logins do CRM CNI no Supabase.",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

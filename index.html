@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM CNI - Consultoria &amp; Negócios Imobiliários</title>
+<link rel="icon" href="assets/logo.jpg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <img src="assets/logo.jpg" alt="CNI">
+    <h1>Acesse o CRM</h1>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">E-mail</label>
+        <input type="email" id="login-email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="login-password">Senha</label>
+        <input type="password" id="login-password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary">Entrar</button>
+      <p class="login-error" id="login-error"></p>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen" hidden>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="assets/logo.jpg" alt="CNI - Consultoria & Negócios Imobiliários">
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="side-nav-item active" data-view="inicio">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+          <span>Início</span>
+        </button>
+        <button class="side-nav-item" data-view="funil">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="13" rx="1"/></svg>
+          <span>Funil</span>
+        </button>
+        <button class="side-nav-item" data-view="lembretes">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span>Lembretes</span>
+          <span id="reminder-count" class="reminder-count" hidden>0</span>
+        </button>
+        <button class="side-nav-item" data-view="corretores" id="nav-corretores" hidden>
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c1-3.6 3.3-5.5 5.5-5.5s4.5 1.9 5.5 5.5"/><circle cx="17.5" cy="8.5" r="2.5"/><path d="M15.7 14.8c1.9.3 3.5 2 4.3 5.2"/></svg>
+          <span>Corretores</span>
+        </button>
+        <button class="side-nav-item" data-view="reconversao">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.9v-1a4 4 0 0 1 4-4h14"/><path d="M7 21.9l-4-4 4-4"/><path d="M21 11.1v1a4 4 0 0 1-4 4H3"/></svg>
+          <span>Reconversão</span>
+        </button>
+        <button class="side-nav-item" data-view="mensagens">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20l1.1-5.5A8.5 8.5 0 1 1 21 11.5Z"/></svg>
+          <span>Mensagens</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <strong id="user-nome">—</strong>
+          <span id="user-papel">—</span>
+        </div>
+        <div class="sidebar-footer-actions">
+          <button class="icon-btn" id="btn-theme" title="Alternar tema">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+          </button>
+          <button class="icon-btn" id="btn-logout" title="Sair">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/><path d="M12 2v10"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="content-topbar">
+        <div class="search-wrap">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="busca-leads" placeholder="Buscar por nome, telefone ou cidade...">
+        </div>
+        <div class="content-topbar-actions">
+          <select class="btn-secondary-select" id="sel-ordenar">
+            <option value="manual">Ordem manual</option>
+            <option value="nome">Nome A–Z</option>
+            <option value="quente">Mais quentes</option>
+          </select>
+          <button class="btn-secondary" id="btn-toggle-filtros">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M7 12h10M11 19h2"/></svg>
+            Filtros
+            <span id="filter-count-badge" class="filter-count-badge" hidden>0</span>
+          </button>
+          <button class="btn-secondary" id="btn-export">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            Exportar CSV
+          </button>
+          <button class="btn-primary" id="btn-novo-lead">+ Novo Lead</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- INÍCIO -->
+        <section id="view-inicio" class="view active">
+          <header class="view-header">
+            <div>
+              <p class="subtitle">VISÃO GERAL</p>
+              <h1 id="inicio-saudacao">Olá</h1>
+            </div>
+          </header>
+          <div class="dashboard-stats" id="dashboard-stats"></div>
+          <div class="dashboard-cols">
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3>Prioridades</h3>
+                <span class="subtitle">Atendimentos que merecem atenção</span>
+              </div>
+              <div id="dashboard-prioridades"></div>
+            </div>
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3>Funil principal</h3>
+                <span class="subtitle" id="dashboard-funil-resumo"></span>
+              </div>
+              <div id="dashboard-funil"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FUNIL -->
+        <section id="view-funil" class="view">
+          <div class="board" id="board"></div>
+        </section>
+
+        <!-- LEMBRETES -->
+        <section id="view-lembretes" class="view">
+          <header class="view-header">
+            <div>
+              <h1>Lembretes de Follow-up</h1>
+              <p class="subtitle">Pendentes de todos os leads, ordenados por data.</p>
+            </div>
+          </header>
+          <div class="reminders-list" id="reminders-list"></div>
+          <div class="empty-state" id="empty-reminders" hidden>
+            <p>Nenhum lembrete pendente.</p>
+          </div>
+        </section>
+
+        <!-- CORRETORES -->
+        <section id="view-corretores" class="view">
+          <header class="view-header">
+            <div>
+              <h1>Corretores</h1>
+              <p class="subtitle">Clique em um corretor para ver o funil dele, do mesmo jeito que você vê o seu.</p>
+            </div>
+          </header>
+          <div class="corretores-list" id="corretores-list"></div>
+        </section>
+
+        <!-- RECONVERSÃO -->
+        <section id="view-reconversao" class="view">
+          <header class="view-header">
+            <div>
+              <h1>Funil de Reconversão</h1>
+              <p class="subtitle">Trabalhe os leads perdidos ou reprovados numa esteira separada, sem misturar com o funil principal.</p>
+            </div>
+          </header>
+          <div class="board" id="board-reconversao"></div>
+        </section>
+
+        <!-- MENSAGENS -->
+        <section id="view-mensagens" class="view">
+          <header class="view-header">
+            <div>
+              <h1>Central de Mensagens</h1>
+              <p class="subtitle">Monte uma fila de contatos e trabalhe um por vez — você revisa e envia cada mensagem no WhatsApp.</p>
+            </div>
+          </header>
+
+          <div class="mensagens-layout" id="mensagens-montagem">
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3>Monte sua fila</h3>
+                <span class="subtitle">Escolha quem você quer atender agora.</span>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Etapa</label>
+                  <select id="msg-etapa"></select>
+                </div>
+                <div class="field">
+                  <label>Tag de sequência</label>
+                  <select id="msg-tag"></select>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Cidade</label>
+                  <select id="msg-cidade"></select>
+                </div>
+                <div class="field">
+                  <label>Temperatura</label>
+                  <select id="msg-temperatura"></select>
+                </div>
+              </div>
+              <div class="field">
+                <label>Quantidade</label>
+                <select id="msg-qtd">
+                  <option value="10">10 clientes</option>
+                  <option value="25" selected>25 clientes</option>
+                  <option value="50">50 clientes</option>
+                  <option value="100">100 clientes</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Mensagem</label>
+                <textarea id="msg-texto" placeholder="Use {nome} para inserir o nome do cliente">Olá {nome}, tudo bem? Aqui é da CNI Consultoria & Negócios Imobiliários!</textarea>
+              </div>
+              <div class="field checkbox-field">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="msg-confirmo">
+                  Confirmo que estes contatos podem receber minha comunicação.
+                </label>
+              </div>
+              <button class="btn-primary" id="btn-montar-fila" disabled>Montar fila</button>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3>Prévia da seleção</h3>
+                <span class="subtitle">O CRM ignora quem não deseja contato, quem já foi chamado hoje e quem já concluiu o DIA 4.</span>
+              </div>
+              <div id="msg-preview"></div>
+            </div>
+          </div>
+
+          <div class="mensagens-fila" id="mensagens-fila" hidden>
+            <div class="dashboard-card fila-runner">
+              <div class="fila-runner-header">
+                <span class="subtitle" id="fila-progresso">Cliente 1 de 1</span>
+                <button class="btn-secondary btn-small" id="btn-encerrar-fila" type="button">Encerrar fila</button>
+              </div>
+              <div id="fila-cliente-info"></div>
+              <div class="fila-runner-actions">
+                <button class="btn-secondary" id="btn-pular-fila" type="button">Pular</button>
+                <button class="btn-primary" id="btn-abrir-whatsapp" type="button">Abrir WhatsApp e marcar contatado</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- PAINEL DE FILTROS -->
+<div id="filter-backdrop" class="filter-backdrop" hidden></div>
+<aside id="filter-drawer" class="filter-drawer" hidden>
+  <div class="filter-drawer-header">
+    <h3>Filtros</h3>
+    <button class="modal-close" id="btn-close-filtros">✕</button>
+  </div>
+  <div class="field">
+    <label>Renda</label>
+    <input type="number" id="filtro-renda" min="0" placeholder="Ex: 5000">
+  </div>
+  <div class="field" id="filtro-usuario-wrap" hidden>
+    <label>Responsável</label>
+    <select id="filtro-usuario">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Temperatura</label>
+    <select id="filtro-temperatura">
+      <option value="">Todas</option>
+      <option value="quente">Quente</option>
+      <option value="morno">Morno</option>
+      <option value="frio">Frio</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Empreendimento</label>
+    <select id="filtro-empreendimento">
+      <option value="">Todos</option>
+      <option value="com">Com interesse</option>
+      <option value="sem">Sem interesse</option>
+    </select>
+  </div>
+  <div class="filter-drawer-actions">
+    <button class="btn-secondary" id="btn-limpar-filtros">Limpar filtro</button>
+    <button class="btn-primary" id="btn-aplicar-filtros">OK</button>
+  </div>
+</aside>
+
+<!-- MODAL ROOT -->
+<div id="modal-overlay" class="modal-overlay" hidden>
+  <div class="modal" id="modal"></div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<datalist id="lista-empreendimentos"></datalist>
+<datalist id="lista-origens"></datalist>
+<datalist id="lista-cidades"></datalist>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
