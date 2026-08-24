@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversas da Ana - CNI</title>
+<link rel="icon" href="assets/logo.jpg">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="ana-conversas.css">
+</head>
+<body>
+
+<div id="login-gate" class="login-gate">
+  <img src="assets/logo.jpg" alt="CNI">
+  <p>Verificando acesso...</p>
+</div>
+
+<div id="app" class="app" hidden>
+  <header class="top-strip">
+    <a href="index.html" class="voltar-crm">← CRM</a>
+    <strong>Conversas da Ana</strong>
+    <span id="user-chip" class="subtitle"></span>
+  </header>
+
+  <div class="painel">
+    <aside class="lista-col">
+      <div class="lista-header">
+        <h2>Conversas</h2>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="todas">Todas</button>
+        <button class="tab" data-tab="minhas">Minhas</button>
+        <button class="tab" data-tab="arquivadas">Arquivadas</button>
+      </div>
+      <div class="busca-wrap">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="busca" placeholder="Buscar por nome ou telefone...">
+      </div>
+      <div class="itens" id="itens"></div>
+      <div class="vazio" id="vazio" hidden><p>Nenhuma conversa aqui.</p></div>
+    </aside>
+
+    <main class="thread-col">
+      <div class="thread-vazio" id="thread-vazio">
+        <p>Selecione uma conversa à esquerda.</p>
+      </div>
+      <div class="thread-conteudo" id="thread-conteudo" hidden>
+        <header class="thread-header">
+          <div>
+            <strong id="t-nome">—</strong>
+            <div class="atribuir-row">
+              <span>Atribuir responsável</span>
+              <select id="t-atribuir">
+                <option value="andre">André</option>
+                <option value="angela">Angela</option>
+              </select>
+            </div>
+          </div>
+          <span class="subtitle" id="t-telefone">—</span>
+        </header>
+        <div class="thread-msgs" id="t-msgs"></div>
+        <footer class="thread-footer">
+          <button class="btn-secondary" id="t-toggle" type="button">—</button>
+          <a class="btn-primary" id="t-whatsapp" href="#" target="_blank" rel="noopener">Abrir no WhatsApp</a>
+        </footer>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="ana-conversas.js"></script>
+</body>
+</html>
