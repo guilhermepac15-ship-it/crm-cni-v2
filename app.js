@@ -134,7 +134,7 @@ let profiles = [];
 let editingLeadId = null; // null = novo lead
 let draggedCardId = null;
 const filterState = { renda: null, responsavelId: '', temperatura: '', empreendimento: '' };
-let sortState = 'manual'; // manual | nome | quente
+let sortState = 'recentes'; // recentes | manual | nome | quente
 
 // ============ HELPERS ============
 const qs = (sel, root = document) => root.querySelector(sel);
@@ -514,6 +514,7 @@ function ordenarLeads(list) {
     const peso = { quente: 0, morno: 1, frio: 2 };
     return [...list].sort((a, b) => (peso[a.temperatura] ?? 1) - (peso[b.temperatura] ?? 1));
   }
+  if (sortState === 'recentes') return [...list].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   return [...list].sort((a, b) => a.order_index - b.order_index);
 }
 
@@ -587,7 +588,7 @@ function renderCard(lead) {
 
   const card = document.createElement('div');
   card.className = 'lead-card';
-  card.draggable = sortState === 'manual';
+  card.draggable = true;
   card.dataset.id = lead.id;
   const tagDia = tagDiaLabel(lead.tag_dia);
   card.innerHTML = `
