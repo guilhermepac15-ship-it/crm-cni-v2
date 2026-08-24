@@ -1314,6 +1314,10 @@ const filaState = { ids: [], index: 0, mensagem: '' };
 function initMensagensFiltros() {
   const etapaSel = qs('#msg-etapa');
   if (!etapaSel) return;
+  const respSel = qs('#msg-responsavel');
+  respSel.innerHTML = '<option value="">Todos</option>' +
+    profiles.map(p => `<option value="${p.id}">${escapeHtml(p.nome)}</option>`).join('');
+  respSel.value = (currentUser && currentUser.id) || '';
   etapaSel.innerHTML = '<option value="">Todas</option>' + ETAPAS.map(e => `<option value="${e.key}">${e.label}</option>`).join('');
   qs('#msg-tag').innerHTML = '<option value="">Todas</option>' + TAGS_DIA.map(t => `<option value="${t.key}">${t.label}</option>`).join('') + '<option value="sem_tag">Sem tag</option>';
   qs('#msg-temperatura').innerHTML = '<option value="">Todas</option>' + TEMPERATURAS.map(t => `<option value="${t.key}">${t.label}</option>`).join('');
@@ -1330,6 +1334,7 @@ function initMensagensFiltros() {
 }
 
 function candidatosMensagem() {
+  const responsavelId = qs('#msg-responsavel').value;
   const etapa = qs('#msg-etapa').value;
   const tag = qs('#msg-tag').value;
   const cidade = qs('#msg-cidade').value;
@@ -1337,6 +1342,7 @@ function candidatosMensagem() {
   const hoje = new Date().toDateString();
 
   return leads.filter(l => {
+    if (responsavelId && l.responsavel_id !== responsavelId) return false;
     if (etapa && l.etapa !== etapa) return false;
     if (tag === 'sem_tag' && l.tag_dia) return false;
     if (tag && tag !== 'sem_tag' && l.tag_dia !== tag) return false;
@@ -1354,9 +1360,11 @@ function renderMensagensPreview() {
   const previewEl = qs('#msg-preview');
   if (!previewEl) return;
 
+  const responsavelId = qs('#msg-responsavel').value;
   const etapa = qs('#msg-etapa').value, tag = qs('#msg-tag').value, cidade = qs('#msg-cidade').value, temperatura = qs('#msg-temperatura').value;
   const baseSet = leads.filter(l =>
-    (!etapa || l.etapa === etapa) && (!cidade || l.cidade === cidade) && (!temperatura || l.temperatura === temperatura)
+    (!responsavelId || l.responsavel_id === responsavelId)
+    && (!etapa || l.etapa === etapa) && (!cidade || l.cidade === cidade) && (!temperatura || l.temperatura === temperatura)
     && (!tag || (tag === 'sem_tag' ? !l.tag_dia : l.tag_dia === tag))
   );
   const candidatos = candidatosMensagem();
