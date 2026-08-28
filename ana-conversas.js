@@ -152,12 +152,11 @@
         <div class="item${ativo}${naoLida}" data-tel="${c.telefone}">
           <div class="avatar">${iniciais(c.nome)}</div>
           <div class="info">
-            <div class="linha1"><strong>${c.nome || c.telefone}</strong><span class="tempo">${tempoRelativo(c.ultimaMensagemEm)}</span></div>
+            <div class="linha1"><span class="linha1-nome">${c.fixado ? `<span class="icone-fixado" title="Fixada">${ICONE.fixar}</span>` : ''}<strong>${c.nome || c.telefone}</strong></span><span class="tempo">${tempoRelativo(c.ultimaMensagemEm)}</span></div>
             <div class="linha2">${c.telefone}</div>
             <div class="tags">
               <span class="tag tag-produto">${PRODUTO_LABEL[c.produtoChave] || c.produtoChave || 'Produto?'}</span>
               <span class="tag tag-estado tag-estado-${(c.estado || '').toLowerCase()}">${ESTADO_LABEL[c.estado] || c.estado || '—'}</span>
-              ${c.fixado ? '<span class="tag tag-fixado">Fixada</span>' : ''}
             </div>
           </div>
           ${c.naoLida ? '<span class="dot-nao-lida" title="Não lida"></span>' : ''}
