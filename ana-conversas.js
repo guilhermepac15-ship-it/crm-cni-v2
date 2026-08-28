@@ -17,12 +17,22 @@
     busca: '',
     aba: 'todas',
     meuAtendidoPor: null, // 'andre' | 'angela' | null (não reconhecido)
+    menuAberto: null, // telefone do card com o menu de ações aberto
   };
 
   const qs = (sel, root = document) => root.querySelector(sel);
   const PRODUTO_LABEL = { oni_marrocos: 'Oni Marrocos', villa_flora_jardins: 'Villa Flora Jardins' };
   const ESTADO_LABEL = {
     CONVERSANDO: 'Conversando', TRANSFERIDO: 'Com humano', AGENDADO: 'Agendado', NUTRICAO: 'Manutenção',
+  };
+
+  // Ícones minimalistas (mesmo estilo do ícone de busca já usado na página).
+  const ICONE = {
+    excluir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    naoLida: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    fixar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 4h6"/><path d="M9 4v6.5c0 .7-.3 1.3-.8 1.8L7 14h10l-1.2-1.7c-.5-.5-.8-1.1-.8-1.8V4"/></svg>',
+    arquivar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></svg>',
+    chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
   };
 
   function showToast(msg, isError) {
@@ -108,6 +118,28 @@
     });
   }
 
+  function renderMenuAcoes(c) {
+    const itens = [
+      { acao: 'apagar', label: 'Excluir', icone: ICONE.excluir, confirmar: true },
+      { acao: 'marcar_nao_lida', label: 'Marcar como não lida', icone: ICONE.naoLida, valor: 'true' },
+      c.fixado
+        ? { acao: 'fixar', label: 'Desfixar', icone: ICONE.fixar, valor: 'false' }
+        : { acao: 'fixar', label: 'Fixar', icone: ICONE.fixar, valor: 'true' },
+      c.arquivado
+        ? { acao: 'arquivar', label: 'Desarquivar', icone: ICONE.arquivar, valor: 'false' }
+        : { acao: 'arquivar', label: 'Arquivar', icone: ICONE.arquivar, valor: 'true' },
+    ];
+    return `
+      <div class="menu-acoes" data-tel="${c.telefone}">
+        ${itens.map(it => `
+          <button type="button" class="menu-acao-item" data-acao="${it.acao}" data-valor="${it.valor || ''}" data-confirmar="${it.confirmar ? '1' : ''}">
+            <span class="menu-acao-icone">${it.icone}</span>
+            <span>${it.label}</span>
+          </button>
+        `).join('')}
+      </div>`;
+  }
+
   function renderLista() {
     const wrap = qs('#itens');
     const lista = conversasFiltradas();
@@ -115,6 +147,7 @@
     wrap.innerHTML = lista.map(c => {
       const ativo = state.selecionado === c.telefone ? ' ativo' : '';
       const naoLida = c.naoLida ? ' nao-lida' : '';
+      const menuAberto = state.menuAberto === c.telefone;
       return `
         <div class="item${ativo}${naoLida}" data-tel="${c.telefone}">
           <div class="avatar">${iniciais(c.nome)}</div>
@@ -124,16 +157,54 @@
             <div class="tags">
               <span class="tag tag-produto">${PRODUTO_LABEL[c.produtoChave] || c.produtoChave || 'Produto?'}</span>
               <span class="tag tag-estado tag-estado-${(c.estado || '').toLowerCase()}">${ESTADO_LABEL[c.estado] || c.estado || '—'}</span>
+              ${c.fixado ? '<span class="tag tag-fixado">Fixada</span>' : ''}
             </div>
           </div>
           ${c.naoLida ? '<span class="dot-nao-lida" title="Não lida"></span>' : ''}
+          <button type="button" class="btn-menu-item" data-tel-menu="${c.telefone}" title="Mais ações">${ICONE.chevron}</button>
+          ${menuAberto ? renderMenuAcoes(c) : ''}
         </div>`;
     }).join('');
-    wrap.querySelectorAll('.item').forEach(el => el.addEventListener('click', () => selecionar(el.dataset.tel)));
+
+    wrap.querySelectorAll('.item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-menu-item') || e.target.closest('.menu-acoes')) return;
+        selecionar(el.dataset.tel);
+      });
+    });
+    wrap.querySelectorAll('.btn-menu-item').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tel = btn.dataset.telMenu;
+        state.menuAberto = state.menuAberto === tel ? null : tel;
+        renderLista();
+      });
+    });
+    wrap.querySelectorAll('.menu-acao-item').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tel = btn.closest('.menu-acoes').dataset.tel;
+        const acao = btn.dataset.acao;
+        const valor = btn.dataset.valor || null;
+        if (btn.dataset.confirmar === '1' && !confirm('Excluir esta conversa da lista? Ela some pra sempre daqui do painel (não dá pra desfazer por aqui).')) {
+          return;
+        }
+        state.menuAberto = null;
+        executarAcao(tel, acao, valor);
+      });
+    });
   }
+
+  document.addEventListener('click', (e) => {
+    if (state.menuAberto && !e.target.closest('.menu-acoes') && !e.target.closest('.btn-menu-item')) {
+      state.menuAberto = null;
+      renderLista();
+    }
+  });
 
   async function selecionar(telefone) {
     state.selecionado = telefone;
+    state.menuAberto = null;
     renderLista();
     qs('#thread-vazio').hidden = true;
     qs('#thread-conteudo').hidden = false;
@@ -143,16 +214,10 @@
     qs('#t-whatsapp').href = whatsappLink(telefone);
     qs('#t-atribuir').value = (conversa && conversa.atendidoPor) || 'andre';
     atualizarBotaoToggle(conversa);
-    atualizarBotaoArquivar(conversa);
     await carregarHistorico();
     if (conversa && conversa.naoLida) {
-      await executarAcao('marcar_nao_lida', 'false', { silencioso: true });
+      await executarAcao(telefone, 'marcar_nao_lida', 'false', { silencioso: true });
     }
-  }
-
-  function atualizarBotaoArquivar(conversa) {
-    qs('#t-arquivar').textContent = (conversa && conversa.arquivado) ? 'Desarquivar' : 'Arquivar';
-    qs('#t-arquivar').dataset.valor = (conversa && conversa.arquivado) ? 'false' : 'true';
   }
 
   function atualizarBotaoToggle(conversa) {
@@ -196,23 +261,17 @@
     if (permaneceEmbaixo) wrap.scrollTop = wrap.scrollHeight;
   }
 
-  async function executarAcao(acao, valor, opts = {}) {
-    if (!state.selecionado) return;
-    const telefoneAlvo = state.selecionado;
+  async function executarAcao(telefone, acao, valor, opts = {}) {
+    if (!telefone) return;
     try {
-      await painelFetch('painel-acao', { method: 'POST', body: JSON.stringify({ telefone: telefoneAlvo, acao, valor }) });
+      await painelFetch('painel-acao', { method: 'POST', body: JSON.stringify({ telefone, acao, valor }) });
       await carregarLista();
-      const aindaSelecionado = state.selecionado === telefoneAlvo;
-      if (acao === 'apagar') {
-        if (aindaSelecionado) {
-          state.selecionado = null;
-          qs('#thread-vazio').hidden = false;
-          qs('#thread-conteudo').hidden = true;
-        }
-      } else if (aindaSelecionado) {
-        const conversa = state.conversas.find(c => c.telefone === telefoneAlvo);
-        atualizarBotaoToggle(conversa);
-        atualizarBotaoArquivar(conversa);
+      if (acao === 'apagar' && state.selecionado === telefone) {
+        state.selecionado = null;
+        qs('#thread-vazio').hidden = false;
+        qs('#thread-conteudo').hidden = true;
+      } else if (state.selecionado === telefone) {
+        atualizarBotaoToggle(state.conversas.find(c => c.telefone === telefone));
       }
       if (!opts.silencioso) showToast('Atualizado.');
     } catch (err) {
@@ -221,15 +280,8 @@
   }
 
   qs('#busca').addEventListener('input', (e) => { state.busca = e.target.value; renderLista(); });
-  qs('#t-toggle').addEventListener('click', (e) => executarAcao(e.target.dataset.acao, null));
-  qs('#t-atribuir').addEventListener('change', (e) => executarAcao('atribuir', e.target.value));
-  qs('#t-arquivar').addEventListener('click', (e) => executarAcao('arquivar', e.target.dataset.valor));
-  qs('#t-nao-lida').addEventListener('click', () => executarAcao('marcar_nao_lida', 'true'));
-  qs('#t-apagar').addEventListener('click', () => {
-    if (confirm('Apagar esta conversa da lista? Ela some pra sempre daqui do painel (não dá pra desfazer por aqui).')) {
-      executarAcao('apagar', null);
-    }
-  });
+  qs('#t-toggle').addEventListener('click', (e) => executarAcao(state.selecionado, e.target.dataset.acao, null));
+  qs('#t-atribuir').addEventListener('change', (e) => executarAcao(state.selecionado, 'atribuir', e.target.value));
   document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
