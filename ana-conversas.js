@@ -101,8 +101,9 @@
     const termo = state.busca.trim().toLowerCase();
     return state.conversas.filter(c => {
       if (termo && !((c.nome || '').toLowerCase().includes(termo) || (c.telefone || '').includes(termo))) return false;
+      if (state.aba === 'arquivadas') return !!c.arquivado;
+      if (c.arquivado) return false; // arquivada só aparece na própria aba
       if (state.aba === 'minhas') return c.atendidoPor === state.meuAtendidoPor;
-      if (state.aba === 'arquivadas') return c.estado === 'NUTRICAO';
       return true;
     });
   }
@@ -113,8 +114,9 @@
     qs('#vazio').hidden = lista.length > 0;
     wrap.innerHTML = lista.map(c => {
       const ativo = state.selecionado === c.telefone ? ' ativo' : '';
+      const naoLida = c.naoLida ? ' nao-lida' : '';
       return `
-        <div class="item${ativo}" data-tel="${c.telefone}">
+        <div class="item${ativo}${naoLida}" data-tel="${c.telefone}">
           <div class="avatar">${iniciais(c.nome)}</div>
           <div class="info">
             <div class="linha1"><strong>${c.nome || c.telefone}</strong><span class="tempo">${tempoRelativo(c.ultimaMensagemEm)}</span></div>
@@ -124,6 +126,7 @@
               <span class="tag tag-estado tag-estado-${(c.estado || '').toLowerCase()}">${ESTADO_LABEL[c.estado] || c.estado || '—'}</span>
             </div>
           </div>
+          ${c.naoLida ? '<span class="dot-nao-lida" title="Não lida"></span>' : ''}
         </div>`;
     }).join('');
     wrap.querySelectorAll('.item').forEach(el => el.addEventListener('click', () => selecionar(el.dataset.tel)));
@@ -140,7 +143,16 @@
     qs('#t-whatsapp').href = whatsappLink(telefone);
     qs('#t-atribuir').value = (conversa && conversa.atendidoPor) || 'andre';
     atualizarBotaoToggle(conversa);
+    atualizarBotaoArquivar(conversa);
     await carregarHistorico();
+    if (conversa && conversa.naoLida) {
+      await executarAcao('marcar_nao_lida', 'false', { silencioso: true });
+    }
+  }
+
+  function atualizarBotaoArquivar(conversa) {
+    qs('#t-arquivar').textContent = (conversa && conversa.arquivado) ? 'Desarquivar' : 'Arquivar';
+    qs('#t-arquivar').dataset.valor = (conversa && conversa.arquivado) ? 'false' : 'true';
   }
 
   function atualizarBotaoToggle(conversa) {
@@ -184,21 +196,40 @@
     if (permaneceEmbaixo) wrap.scrollTop = wrap.scrollHeight;
   }
 
-  async function executarAcao(acao, valor) {
+  async function executarAcao(acao, valor, opts = {}) {
     if (!state.selecionado) return;
+    const telefoneAlvo = state.selecionado;
     try {
-      await painelFetch('painel-acao', { method: 'POST', body: JSON.stringify({ telefone: state.selecionado, acao, valor }) });
+      await painelFetch('painel-acao', { method: 'POST', body: JSON.stringify({ telefone: telefoneAlvo, acao, valor }) });
       await carregarLista();
-      atualizarBotaoToggle(state.conversas.find(c => c.telefone === state.selecionado));
-      showToast('Atualizado.');
+      const aindaSelecionado = state.selecionado === telefoneAlvo;
+      if (acao === 'apagar') {
+        if (aindaSelecionado) {
+          state.selecionado = null;
+          qs('#thread-vazio').hidden = false;
+          qs('#thread-conteudo').hidden = true;
+        }
+      } else if (aindaSelecionado) {
+        const conversa = state.conversas.find(c => c.telefone === telefoneAlvo);
+        atualizarBotaoToggle(conversa);
+        atualizarBotaoArquivar(conversa);
+      }
+      if (!opts.silencioso) showToast('Atualizado.');
     } catch (err) {
-      showToast('Não consegui atualizar agora.', true);
+      if (!opts.silencioso) showToast('Não consegui atualizar agora.', true);
     }
   }
 
   qs('#busca').addEventListener('input', (e) => { state.busca = e.target.value; renderLista(); });
   qs('#t-toggle').addEventListener('click', (e) => executarAcao(e.target.dataset.acao, null));
   qs('#t-atribuir').addEventListener('change', (e) => executarAcao('atribuir', e.target.value));
+  qs('#t-arquivar').addEventListener('click', (e) => executarAcao('arquivar', e.target.dataset.valor));
+  qs('#t-nao-lida').addEventListener('click', () => executarAcao('marcar_nao_lida', 'true'));
+  qs('#t-apagar').addEventListener('click', () => {
+    if (confirm('Apagar esta conversa da lista? Ela some pra sempre daqui do painel (não dá pra desfazer por aqui).')) {
+      executarAcao('apagar', null);
+    }
+  });
   document.querySelectorAll('.tab').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));

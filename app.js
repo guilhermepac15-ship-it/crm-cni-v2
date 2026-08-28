@@ -1318,7 +1318,8 @@ function initMensagensFiltros() {
   respSel.innerHTML = '<option value="">Todos</option>' +
     profiles.map(p => `<option value="${p.id}">${escapeHtml(p.nome)}</option>`).join('');
   respSel.value = (currentUser && currentUser.id) || '';
-  etapaSel.innerHTML = '<option value="">Todas</option>' + ETAPAS.map(e => `<option value="${e.key}">${e.label}</option>`).join('');
+  const etapasPermitidas = ETAPAS.filter(e => ETAPAS_MENSAGEM.includes(e.key));
+  etapaSel.innerHTML = '<option value="">Todas (Contato inicial + Manutenção)</option>' + etapasPermitidas.map(e => `<option value="${e.key}">${e.label}</option>`).join('');
   qs('#msg-tag').innerHTML = '<option value="">Todas</option>' + TAGS_DIA.map(t => `<option value="${t.key}">${t.label}</option>`).join('') + '<option value="sem_tag">Sem tag</option>';
   qs('#msg-temperatura').innerHTML = '<option value="">Todas</option>' + TEMPERATURAS.map(t => `<option value="${t.key}">${t.label}</option>`).join('');
   qs('#msg-cidade').innerHTML = '<option value="">Todas</option>' + CIDADES.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -1333,6 +1334,11 @@ function initMensagensFiltros() {
   renderMensagensPreview();
 }
 
+// Nunca pode disparar mensagem de fila pra quem já está em negociação real
+// (oportunidade, visita, em análise, aprovado) nem em etapa encerrada
+// (vendido, reprovado, lead perdido) — só contato inicial e manutenção.
+const ETAPAS_MENSAGEM = ['contato_inicial', 'manutencao'];
+
 function candidatosMensagem() {
   const responsavelId = qs('#msg-responsavel').value;
   const etapa = qs('#msg-etapa').value;
@@ -1342,6 +1348,7 @@ function candidatosMensagem() {
   const hoje = new Date().toDateString();
 
   return leads.filter(l => {
+    if (!ETAPAS_MENSAGEM.includes(l.etapa)) return false;
     if (responsavelId && l.responsavel_id !== responsavelId) return false;
     if (etapa && l.etapa !== etapa) return false;
     if (tag === 'sem_tag' && l.tag_dia) return false;
@@ -1363,7 +1370,8 @@ function renderMensagensPreview() {
   const responsavelId = qs('#msg-responsavel').value;
   const etapa = qs('#msg-etapa').value, tag = qs('#msg-tag').value, cidade = qs('#msg-cidade').value, temperatura = qs('#msg-temperatura').value;
   const baseSet = leads.filter(l =>
-    (!responsavelId || l.responsavel_id === responsavelId)
+    ETAPAS_MENSAGEM.includes(l.etapa)
+    && (!responsavelId || l.responsavel_id === responsavelId)
     && (!etapa || l.etapa === etapa) && (!cidade || l.cidade === cidade) && (!temperatura || l.temperatura === temperatura)
     && (!tag || (tag === 'sem_tag' ? !l.tag_dia : l.tag_dia === tag))
   );
